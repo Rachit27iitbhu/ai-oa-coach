@@ -14,12 +14,13 @@ st.set_page_config(
 )
 
 # Initialize Sarvam AI Client
+# Initialize Sarvam AI Client
 def get_sarvam_client():
     api_key = os.getenv("SARVAM_API_KEY") or st.session_state.get("user_api_key")
     if api_key and api_key != "your_sarvam_api_key_here":
         try:
-            from sarvamai import Sarvam
-            return Sarvam(api_key=api_key)
+            from sarvamai import SarvamAI  # Corrected class name
+            return SarvamAI(api_subscription_key=api_key)  # Corrected parameter name
         except Exception as e:
             st.error(f"Failed to initialize Sarvam Client: {e}")
             return None
@@ -154,23 +155,28 @@ with tab_input:
     problem_code = st.text_area("Paste Problem Description / Your Solution:", value=default_code, height=300)
 
 # Helper Function to query Sarvam API or output mock response
+# Helper Function to query Sarvam API or output mock response
+# Helper Function to query Sarvam API or output mock response
 def generate_coaching_response(prompt: str, fallback_response: str) -> str:
     if client:
         try:
             with st.spinner("Sarvam AI analyzing..."):
-                response = client.chat.completions.create(
-                    model="sarvam-2b", # or "sarvam-105b-conversations"
+                response = client.chat.completions(
+                    model="sarvam-105b",  # or "sarvam-2b"
                     messages=[
                         {"role": "system", "content": "You are an expert OA (Online Assessment) coach for C++ and SQL interviews."},
                         {"role": "user", "content": prompt}
                     ]
                 )
-                return response.choices[0].message.content
+                # Safely extract content and ensure it's not None
+                if response and response.choices and response.choices[0].message:
+                    content = response.choices[0].message.content
+                    if content:
+                        return str(content)
         except Exception as e:
             st.error(f"Sarvam API Error: {e}. Falling back to demo response.")
-            return fallback_response
-    else:
-        return fallback_response
+            
+    return fallback_response
 
 # Tab 1: Pattern & Clues
 with tab_pattern:
